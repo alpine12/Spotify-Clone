@@ -8,9 +8,9 @@ import java.lang.Exception
 
 class MusicDatabase {
 
-    private val firestore = FirebaseFirestore.getInstance()
+    private val fireStore = FirebaseFirestore.getInstance()
 
-    private val songCollection = firestore.collection(SONG_COLLECTION)
+    private val songCollection = fireStore.collection(SONG_COLLECTION)
 
     suspend fun getAllSongs() : List<Song>{
         return try {

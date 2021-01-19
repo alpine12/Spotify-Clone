@@ -87,10 +87,10 @@ dependencies {
     implementation 'com.jakewharton.timber:timber:4.7.1'
 
     // Firebase Firestore
-    implementation 'com.google.firebase:firebase-firestore:22.0.0'
+    implementation 'com.google.firebase:firebase-firestore:22.0.1'
 
     // Firebase Storage KTX
-    implementation 'com.google.firebase:firebase-storage-ktx:19.2.0'
+    implementation 'com.google.firebase:firebase-storage-ktx:19.2.1'
 
     // Firebase Coroutines
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.1.1'

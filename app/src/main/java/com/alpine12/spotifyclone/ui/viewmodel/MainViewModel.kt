@@ -24,12 +24,13 @@ class MainViewModel @ViewModelInject constructor(
     val isConnected = musicServiceConnection.isConnected
     val networkError = musicServiceConnection.networkError
     val curPlayingSong = musicServiceConnection.curPlayingSong
-    val playbackStates = musicServiceConnection.playBackState
+    val playbackStates = musicServiceConnection.playbackState
 
 
     init {
 
         _mediaItem.postValue(Resource.loading(null))
+
         musicServiceConnection.subscribe(
             MEDIA_ROOT_ID,
             object : MediaBrowserCompat.SubscriptionCallback() {
@@ -38,7 +39,7 @@ class MainViewModel @ViewModelInject constructor(
                     children: MutableList<MediaBrowserCompat.MediaItem>
                 ) {
                     super.onChildrenLoaded(parentId, children)
-                    val item = children.map {
+                    val items = children.map {
                         Song(
                             it.mediaId!!,
                             it.description.title.toString(),
@@ -47,9 +48,29 @@ class MainViewModel @ViewModelInject constructor(
                             it.description.iconUri.toString()
                         )
                     }
-                    _mediaItem.postValue(Resource.success(item))
+                    _mediaItem.postValue(Resource.success(items))
                 }
             })
+//        musicServiceConnection.subscribe(
+//            MEDIA_ROOT_ID,
+//            object : MediaBrowserCompat.SubscriptionCallback() {
+//                override fun onChildrenLoaded(
+//                    parentId: String,
+//                    children: MutableList<MediaBrowserCompat.MediaItem>
+//                ) {
+//                    super.onChildrenLoaded(parentId, children)
+//                    val item = children.map {
+//                        Song(
+//                            it.mediaId!!,
+//                            it.description.title.toString(),
+//                            it.description.subtitle.toString(),
+//                            it.description.mediaUri.toString(),
+//                            it.description.iconUri.toString()
+//                        )
+//                    }
+//                    _mediaItem.postValue(Resource.success(item))
+//                }
+//            })
     }
 
     fun skipToNextSong() {
@@ -83,7 +104,7 @@ class MainViewModel @ViewModelInject constructor(
 
     override fun onCleared() {
         super.onCleared()
-        musicServiceConnection.unSubscribe(
+        musicServiceConnection.unsubscribe(
             MEDIA_ROOT_ID,
             object : MediaBrowserCompat.SubscriptionCallback() {})
     }

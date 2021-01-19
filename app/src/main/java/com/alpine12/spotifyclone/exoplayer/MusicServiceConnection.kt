@@ -8,6 +8,7 @@ import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.IMediaControllerCallback
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.PlaybackStateCompat
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.alpine12.spotifyclone.other.Constant.NETWORK_ERROR
@@ -21,12 +22,11 @@ class MusicServiceConnection(context: Context) {
     private val _networkError = MutableLiveData<Event<Resource<Boolean>>>()
     val networkError: LiveData<Event<Resource<Boolean>>> = _networkError
 
-    private val _playBackState = MutableLiveData<PlaybackStateCompat?>()
-    val playBackState: LiveData<PlaybackStateCompat?> = _playBackState
+    private val _playbackState = MutableLiveData<PlaybackStateCompat?>()
+    val playbackState: LiveData<PlaybackStateCompat?> = _playbackState
 
     private val _curPlayingSong = MutableLiveData<MediaMetadataCompat?>()
     val curPlayingSong: LiveData<MediaMetadataCompat?> = _curPlayingSong
-
 
     lateinit var mediaController: MediaControllerCompat
 
@@ -40,25 +40,25 @@ class MusicServiceConnection(context: Context) {
         ),
         mediaBrowserConnectionCallback,
         null
-    ).apply {
-        connect()
-    }
+    ).apply { connect() }
 
     val transportControls: MediaControllerCompat.TransportControls
         get() = mediaController.transportControls
 
-    fun subscribe(parentId : String, callback : MediaBrowserCompat.SubscriptionCallback){
+    fun subscribe(parentId: String, callback: MediaBrowserCompat.SubscriptionCallback) {
         mediaBrowser.subscribe(parentId, callback)
     }
 
-    fun unSubscribe(parentId : String, callback : MediaBrowserCompat.SubscriptionCallback){
+    fun unsubscribe(parentId: String, callback: MediaBrowserCompat.SubscriptionCallback) {
         mediaBrowser.unsubscribe(parentId, callback)
     }
 
     private inner class MediaBrowserConnectionCallback(
         private val context: Context
     ) : MediaBrowserCompat.ConnectionCallback() {
+
         override fun onConnected() {
+            Log.d("MusicServiceConnection", "CONNECTED")
             mediaController = MediaControllerCompat(context, mediaBrowser.sessionToken).apply {
                 registerCallback(MediaControllerCallback())
             }
@@ -66,29 +66,26 @@ class MusicServiceConnection(context: Context) {
         }
 
         override fun onConnectionSuspended() {
-            _isConnected.postValue(
-                Event(
-                    Resource.error(
-                        "The connection was suspended", false
-                    )
-                )
-            )
+            Log.d("MusicServiceConnection", "SUSPENDED")
+
+            _isConnected.postValue(Event(Resource.error(
+                "The connection was suspended", false
+            )))
         }
 
         override fun onConnectionFailed() {
-            _isConnected.postValue(
-                Event(
-                    Resource.error(
-                        "Could't connect to media browser", false
-                    )
-                )
-            )
+            Log.d("MusicServiceConnection", "FAILED")
+
+            _isConnected.postValue(Event(Resource.error(
+                "Couldn't connect to media browser", false
+            )))
         }
     }
 
     private inner class MediaControllerCallback : MediaControllerCompat.Callback() {
+
         override fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
-            _playBackState.postValue(state)
+            _playbackState.postValue(state)
         }
 
         override fun onMetadataChanged(metadata: MediaMetadataCompat?) {
@@ -97,11 +94,11 @@ class MusicServiceConnection(context: Context) {
 
         override fun onSessionEvent(event: String?, extras: Bundle?) {
             super.onSessionEvent(event, extras)
-            when (event) {
+            when(event) {
                 NETWORK_ERROR -> _networkError.postValue(
                     Event(
                         Resource.error(
-                            "Couldnt connect tot the server. Please check your internet connection",
+                            "Couldn't connect to the server. Please check your internet connection.",
                             null
                         )
                     )

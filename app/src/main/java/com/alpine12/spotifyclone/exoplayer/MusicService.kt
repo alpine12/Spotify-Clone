@@ -27,7 +27,6 @@ private const val SERVICE_TAG = "MusicService"
 
 @AndroidEntryPoint
 class MusicService : MediaBrowserServiceCompat() {
-
     @Inject
     lateinit var dataSourceFactory: DefaultDataSourceFactory
 
@@ -45,21 +44,21 @@ class MusicService : MediaBrowserServiceCompat() {
     private lateinit var mediaSession: MediaSessionCompat
     private lateinit var mediaSessionConnector: MediaSessionConnector
 
-    var isForeGroundService = false
+    var isForegroundService = false
 
     private var curPlayingSong: MediaMetadataCompat? = null
 
     private var isPlayerInitialized = false
 
-    private lateinit var musicPlayerEventListener : MusicPlayerEventListener
+    private lateinit var musicPlayerEventListener: MusicPlayerEventListener
 
     companion object {
         var curSongDuration = 0L
-        private set
+            private set
     }
+
     override fun onCreate() {
         super.onCreate()
-
         serviceScope.launch {
             firebaseMusicSource.fetchMediaData()
         }
@@ -80,7 +79,7 @@ class MusicService : MediaBrowserServiceCompat() {
             mediaSession.sessionToken,
             MusicPlayerNotificationListener(this)
         ) {
-                curSongDuration = exoPlayer.duration
+            curSongDuration = exoPlayer.duration
         }
 
         val musicPlaybackPreparer = MusicPlaybackPreparer(firebaseMusicSource) {
@@ -100,7 +99,6 @@ class MusicService : MediaBrowserServiceCompat() {
         musicPlayerEventListener = MusicPlayerEventListener(this)
         exoPlayer.addListener(musicPlayerEventListener)
         musicNotificationManager.showNotification(exoPlayer)
-
     }
 
     private inner class MusicQueueNavigator : TimelineQueueNavigator(mediaSession) {
@@ -114,7 +112,7 @@ class MusicService : MediaBrowserServiceCompat() {
         itemToPlay: MediaMetadataCompat?,
         playNow: Boolean
     ) {
-        val curSongIndex = if (curPlayingSong == null) 0 else songs.indexOf(itemToPlay)
+        val curSongIndex = if(curPlayingSong == null) 0 else songs.indexOf(itemToPlay)
         exoPlayer.prepare(firebaseMusicSource.asMediaSource(dataSourceFactory))
         exoPlayer.seekTo(curSongIndex, 0L)
         exoPlayer.playWhenReady = playNow
@@ -128,6 +126,7 @@ class MusicService : MediaBrowserServiceCompat() {
     override fun onDestroy() {
         super.onDestroy()
         serviceScope.cancel()
+
         exoPlayer.removeListener(musicPlayerEventListener)
         exoPlayer.release()
     }
@@ -137,7 +136,6 @@ class MusicService : MediaBrowserServiceCompat() {
         clientUid: Int,
         rootHints: Bundle?
     ): BrowserRoot? {
-
         return BrowserRoot(MEDIA_ROOT_ID, null)
     }
 
@@ -145,26 +143,21 @@ class MusicService : MediaBrowserServiceCompat() {
         parentId: String,
         result: Result<MutableList<MediaBrowserCompat.MediaItem>>
     ) {
-        when (parentId) {
+        when(parentId) {
             MEDIA_ROOT_ID -> {
-                val resultSent = firebaseMusicSource.whenReady { isInitialized ->
-                    if (isInitialized) {
+                val resultsSent = firebaseMusicSource.whenReady { isInitialized ->
+                    if(isInitialized) {
                         result.sendResult(firebaseMusicSource.asMediaItems())
-                        if (!isPlayerInitialized && firebaseMusicSource.songs.isNotEmpty()) {
-                            preparePlayer(
-                                firebaseMusicSource.songs,
-                                firebaseMusicSource.songs[0],
-                                false
-                            )
+                        if(!isPlayerInitialized && firebaseMusicSource.songs.isNotEmpty()) {
+                            preparePlayer(firebaseMusicSource.songs, firebaseMusicSource.songs[0], false)
                             isPlayerInitialized = true
-                        }else{
-                            mediaSession.sendSessionEvent(NETWORK_ERROR, null)
-                            result.sendResult(null)
                         }
+                    } else {
+                        mediaSession.sendSessionEvent(NETWORK_ERROR, null)
+                        result.sendResult(null)
                     }
-
                 }
-                if (!resultSent){
+                if(!resultsSent) {
                     result.detach()
                 }
             }
