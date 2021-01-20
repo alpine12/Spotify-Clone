@@ -2,6 +2,7 @@ package com.alpine12.spotifyclone.di
 
 import android.content.Context
 import com.alpine12.spotifyclone.R
+import com.alpine12.spotifyclone.adapters.SwipeSongAdapter
 import com.alpine12.spotifyclone.exoplayer.MusicServiceConnection
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
@@ -22,6 +23,10 @@ object AppModule {
     fun provideMusicServiceConnection(
         @ApplicationContext context: Context
     ) = MusicServiceConnection(context)
+
+    @Singleton
+    @Provides
+    fun providesSwipeSongAdapter() = SwipeSongAdapter()
 
     @Singleton
     @Provides
